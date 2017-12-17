@@ -38,14 +38,14 @@ public class MakeFair2 extends FairnessStrategy {
 							sensitiveFeatureValue);
 					baseProb = childNode.probabilityOf(labelFeatureValue, sensitiveFeatureValue,
 							thisFeatureValue);
-					newProb += baseProb;
+					newProb += (baseProb * probSensitiveFeature);
 				}
-				newProb = newProb / ((double) sensitiveFeature.possibleValues.size());
+				//newProb = newProb / ((double) sensitiveFeature.possibleValues.size());
 
 				for (String sensitiveFeatureValue : sensitiveFeature.possibleValues) {
 					row = block.get(sensitiveFeatureValue);
-					baseProb = childNode.probabilityOf(labelFeatureValue, sensitiveFeatureValue,
-							thisFeatureValue);
+					//baseProb = childNode.probabilityOf(labelFeatureValue, sensitiveFeatureValue,
+					//		thisFeatureValue);
 					row.put(thisFeatureValue, newProb);
 				}
 			}
