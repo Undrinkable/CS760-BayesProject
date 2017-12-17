@@ -1,6 +1,7 @@
 package hab.cs760.test;
 
 import hab.cs760.BayesLearner;
+import hab.cs760.bayesnet.BayesMode;
 import hab.cs760.bayesnet.BayesNet;
 import hab.cs760.bayesnet.LabelNode;
 import hab.cs760.bayesnet.Node;
@@ -24,7 +25,8 @@ public class NaiveLymphLearnerTest {
 
 	@BeforeEach
 	void setup() {
-		learner = new BayesLearner("lymph_train.arff", "lymph_test.arff", true);
+		learner = new BayesLearner(FILE_PATH + "lymph_train.arff", FILE_PATH + "lymph_test.arff",
+				BayesMode.Naive);
 		learner.buildBayes();
 	}
 

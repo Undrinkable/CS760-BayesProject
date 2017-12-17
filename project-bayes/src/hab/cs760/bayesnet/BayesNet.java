@@ -14,7 +14,7 @@ import java.util.Queue;
  */
 public class BayesNet {
 	public LabelNode labelNode;
-	private FeatureNode sensitiveNode;
+	public FeatureNode sensitiveNode;
 
 	public static BayesNet naiveNet(List<Feature> featureList) {
 		NominalFeature classLabel = (NominalFeature) featureList.get(featureList.size() - 1);
@@ -152,14 +152,4 @@ public class BayesNet {
 		return firstValueProbability / (firstValueProbability + secondValueProbability);
 	}
 
-	public void makeFair() {
-		List<Edge> sensitiveNodeEdges = sensitiveNode.connectedEdges;
-		FeatureNode childNode;
-		for (Edge edge : sensitiveNodeEdges) {
-			if (sensitiveNode.isPointingAway(edge)) {
-				childNode = (FeatureNode) edge.end();
-				childNode.makeFair();
-			}
-		}
-	}
 }

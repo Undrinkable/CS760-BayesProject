@@ -1,6 +1,7 @@
 package hab.cs760.test;
 
 import hab.cs760.BayesLearner;
+import hab.cs760.bayesnet.BayesMode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +20,8 @@ public class NaiveVoteLearnerTest {
 
 	@BeforeEach
 	void setup() {
-		learner = new BayesLearner("vote_train.arff", "vote_test.arff", true);
+		learner = new BayesLearner(FILE_PATH + "vote_train.arff", FILE_PATH + "vote_test.arff",
+				BayesMode.Naive);
 		learner.buildBayes();
 	}
 

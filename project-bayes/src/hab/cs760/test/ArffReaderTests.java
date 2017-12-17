@@ -1,4 +1,4 @@
-package hab.cs760.machinelearning.test;
+package hab.cs760.test;
 
 import hab.cs760.machinelearning.*;
 import org.junit.jupiter.api.Assertions;

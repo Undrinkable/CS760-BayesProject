@@ -28,7 +28,7 @@ public class ArffReader {
 		featureName = featureName.trim();
 
 		Feature feature;
-		if (!splitLine[2].startsWith("{") && (splitLine[3].contains("numeric") || line.contains
+		if (!splitLine[2].startsWith("{") && (splitLine[2].contains("numeric") || line.contains
 				("real"))) {
 			feature = new NumericFeature(featureName, index);
 		} else {

@@ -1,8 +1,12 @@
 package hab.cs760;
 
 import com.sun.istack.internal.Nullable;
+import hab.cs760.bayesnet.BayesMode;
 import hab.cs760.bayesnet.BayesNet;
-import hab.cs760.bayesnet.Util;
+import hab.cs760.fairness.FairnessStrategy;
+import hab.cs760.fairness.MakeFair1;
+import hab.cs760.fairness.MakeFair2;
+import hab.cs760.fairness.MakeFair3;
 import hab.cs760.machinelearning.ArffReader;
 import hab.cs760.machinelearning.Feature;
 import hab.cs760.machinelearning.Instance;
@@ -10,7 +14,6 @@ import hab.cs760.machinelearning.NominalFeature;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class BayesLearner {
@@ -19,8 +22,9 @@ public class BayesLearner {
 	public final List<Instance> trainInstances;
 	public BayesNet net;
 	private final List<Instance> testInstances;
+	private final FairnessStrategy fairnessStrategy;
 
-	public BayesLearner(String trainFile, String testFile, boolean isNaive) {
+	public BayesLearner(String trainFile, String testFile, BayesMode mode) {
 		ArffReader arffReader = readFile(trainFile);
 		featureList = arffReader.getFeatureList();
 		trainInstances = arffReader.getInstances();
@@ -28,72 +32,48 @@ public class BayesLearner {
 		arffReader = readFile(testFile);
 		testInstances = arffReader.getInstances();
 
-		this.isNaive = isNaive;
-	}
+		isNaive = mode == BayesMode.Naive;
 
-	private BayesLearner(List<Feature> featureList, List<Instance> trainInstances, List<Instance>
-			testInstances, boolean isNaive) {
-		this.featureList = featureList;
-		this.trainInstances = trainInstances;
-		this.testInstances = testInstances;
-		this.isNaive = isNaive;
+		if (mode == BayesMode.FairTAN1) {
+			fairnessStrategy = new MakeFair1();
+		} else if (mode == BayesMode.FairTAN2) {
+			fairnessStrategy = new MakeFair2();
+		} else if (mode == BayesMode.FairTAN3) {
+			fairnessStrategy = new MakeFair3(trainInstances);
+		} else {
+			fairnessStrategy = null;
+		}
 	}
 
 	public static void main(String[] args) {
-		if (args.length == 2) {
-			if (args[0].equals("chess")) {
-				runChessAnalysis(args[1]);
-				System.exit(1);
-			}
-		}
 		if (args.length < 3) {
-			printUsage();
-			System.exit(1);
+			errorExitWithMessage("Not enough arguments.");
+			return;
 		}
 		learnBayesAndPrintResults(args);
 	}
 
-	private static void runChessAnalysis(String dataFile) {
-		ArffReader arffReader = readFile(dataFile);
-		List<Feature> featureList = arffReader.getFeatureList();
-		List<Instance> instances = arffReader.getInstances();
-		List<List<Instance>> subsets = Util.subsetsUsingStratifiedSampling(instances, 10);
-
-		System.out.println("naive\ttan");
-		for (List<Instance> testInstances : subsets) {
-			// make training set
-			List<Instance> trainInstances = new ArrayList<>();
-			for (List<Instance> subset : subsets) {
-				if (subset != testInstances) trainInstances.addAll(subset);
-			}
-
-			// naive bayes
-			BayesLearner bayesLearner = new BayesLearner(featureList, trainInstances,
-					testInstances, true);
-			bayesLearner.buildBayes();
-			System.out.print(String.format("%.6f", bayesLearner.getAccuracyOnTestset()));
-			System.out.print("\t");
-
-			// tan bayes
-			bayesLearner = new BayesLearner(featureList, trainInstances, testInstances, false);
-			bayesLearner.buildBayes();
-			System.out.print(String.format("%.6f", bayesLearner.getAccuracyOnTestset()));
-
-			System.out.println();
-		}
-	}
-
 	private static void learnBayesAndPrintResults(String[] args) {
 		String mode = args[2];
-		boolean isNaive = false;
-		if (mode.equals("n") || mode.equals("t")) {
-			isNaive = mode.equals("n");
+		BayesMode bayesMode;
+		if (mode.equals("n")) {
+			bayesMode = BayesMode.Naive;
+		} else if (mode.equals("t")) {
+			bayesMode = BayesMode.TAN;
+		} else if (mode.equals("f1")) {
+			bayesMode = BayesMode.FairTAN1;
+		} else if (mode.equals("f2")) {
+			bayesMode = BayesMode.FairTAN2;
+		} else if (mode.equals("f3")) {
+			bayesMode = BayesMode.FairTAN3;
 		} else {
-			errorExitWithMessage("<n|t> argument is malformed. Should be either n or t");
+			errorExitWithMessage("Mode argument is malformed.");
+			return;
 		}
 
-		BayesLearner learner = new BayesLearner(args[0], args[1], isNaive);
+		BayesLearner learner = new BayesLearner(args[0], args[1], bayesMode);
 		learner.buildBayes();
+
 		System.out.println(learner.bayesNetString());
 		System.out.println();
 		System.out.println(learner.testSetPredictions());
@@ -102,15 +82,18 @@ public class BayesLearner {
 	private static void errorExitWithMessage(String message) {
 		System.out.println(message);
 		System.out.println();
-		printUsage();
+		System.out.println(usageString());
 		System.exit(1);
 	}
 
-	private static void printUsage() {
-		System.out.println("Usage:  bayes <train-set-file> <test-set-file> <n|t>\n use n for " +
-				"Naive Bayes, t for TAN");
-		System.out.println("To run chess analysis:\n "
-				+ "bayes chess <chess-file>\n");
+	private static String usageString() {
+		return "Usage:  bayes <train-set-file> <test-set-file> <mode>\n" +
+				" Mode options:\n" +
+				"   n  - Naive Bayes\n" +
+				"   t  - TAN\n" +
+				"   f1 - Fair TAN Approach #1\n" +
+				"   f2 - Fair TAN Approach #2\n" +
+				"   f3 - Fair TAN Approach #3\n";
 	}
 
 	/**
@@ -176,7 +159,9 @@ public class BayesLearner {
 		} else {
 			net = BayesNet.treeAugmentedNet(featureList, trainInstances);
 			net.train(trainInstances);
-			net.makeFair();
+			if (fairnessStrategy != null) {
+				fairnessStrategy.makeFair(net);
+			}
 		}
 	}
 
