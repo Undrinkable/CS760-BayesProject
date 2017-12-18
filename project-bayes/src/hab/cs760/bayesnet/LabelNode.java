@@ -55,15 +55,15 @@ public class LabelNode extends Node {
 		return probabilities.get(thisFeatureValue);
 	}
 
-	double predict(Instance instance, boolean isNaive) {
+	double predict(Instance instance, BayesMode mode) {
 		String thisFeatureValue = getFeatureValueForInstance(instance);
-		if (isNaive) {
-			return super.predict(thisFeatureValue, null, instance);
+		if (mode == BayesMode.Naive) {
+			return super.predict(thisFeatureValue, null, instance, mode);
 		} else {
 			double p = probabilityOf(thisFeatureValue);
-			// in a TAN, we need to multiply the label node probability by the the probability term
+			// in a TAN, we need to multiply the label node probability by the probability term
 			// for the tree. the tree is rooted at the first feature as per hw4 specification.
-			return p * connectedEdges.get(0).end().predict(thisFeatureValue, null, instance);
+			return p * connectedEdges.get(0).end().predict(thisFeatureValue, null, instance, mode);
 		}
 	}
 }

@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Implementation of fairness approach #3: Weighted Uncertainty, Weighted
+ *
  * Created by hannah on 12/17/17.
  */
 public class MakeFair3 extends FairnessStrategy {

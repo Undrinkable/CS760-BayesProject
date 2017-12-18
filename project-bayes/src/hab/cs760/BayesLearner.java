@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class BayesLearner {
-	private final boolean isNaive;
+	private final BayesMode mode;
 	private final List<Feature> featureList;
 	public final List<Instance> trainInstances;
 	public BayesNet net;
@@ -32,12 +32,12 @@ public class BayesLearner {
 		arffReader = readFile(testFile);
 		testInstances = arffReader.getInstances();
 
-		isNaive = mode == BayesMode.Naive;
+		this.mode = mode;
 
 		if (mode == BayesMode.FairTAN1) {
-			fairnessStrategy = new MakeFair1();
-		} else if (mode == BayesMode.FairTAN2) {
 			fairnessStrategy = new MakeFair2();
+		} else if (mode == BayesMode.FairTAN2) {
+			fairnessStrategy = new MakeFair1();
 		} else if (mode == BayesMode.FairTAN3) {
 			fairnessStrategy = new MakeFair3(trainInstances);
 		} else {
@@ -125,7 +125,7 @@ public class BayesLearner {
 		for (Instance instance : testInstances) {
 			String actualLabel = instance.actualLabel;
 			String predictedLabel;
-			double prediction = net.predictProbabilityOfFirstLabelValue(instance, isNaive);
+			double prediction = net.predictProbabilityOfFirstLabelValue(instance, mode);
 			if (prediction < 0.5) {
 				predictedLabel = classLabel.possibleValues.get(1);
 				prediction = 1 - prediction;
@@ -153,7 +153,7 @@ public class BayesLearner {
 	}
 
 	public void buildBayes() {
-		if (isNaive) {
+		if (mode == BayesMode.Naive) {
 			net = BayesNet.naiveNet(featureList);
 			net.train(trainInstances);
 		} else {

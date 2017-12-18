@@ -32,14 +32,22 @@ public abstract class Node {
 
 	public abstract double probabilityOf(String labelNodeValue, String treeParentValue, String thisFeatureValue);
 
-	double predict(String labelValue, String treeParentValue, Instance instance) {
+	double predict(String labelValue, String treeParentValue, Instance instance, BayesMode mode) {
 		String thisFeatureValue = getFeatureValueForInstance(instance);
 
-		double p = probabilityOf(labelValue, treeParentValue, thisFeatureValue);
+		double p;
+		if (mode != BayesMode.Naive && mode != BayesMode.TAN && treeParentValue == null) {
+			// the root in all fair TAN models (which has the sensitive attribute) should always
+			// have p = 1
+			p = 1;
+		} else {
+			p = probabilityOf(labelValue, treeParentValue, thisFeatureValue);
+		}
+
 		// multiply by all subtrees' probabilities
 		for (Edge edge : connectedEdges) {
 			if (isPointingAway(edge)) {
-				p *= edge.end().predict(labelValue, thisFeatureValue, instance);
+				p *= edge.end().predict(labelValue, thisFeatureValue, instance, mode);
 			}
 		}
 		return p;

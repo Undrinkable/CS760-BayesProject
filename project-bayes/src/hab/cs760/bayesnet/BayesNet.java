@@ -140,12 +140,12 @@ public class BayesNet {
 		return labelNode.toString();
 	}
 
-	public double predictProbabilityOfFirstLabelValue(Instance instance, boolean isNaive) {
+	public double predictProbabilityOfFirstLabelValue(Instance instance, BayesMode mode) {
 		instance.setClassLabel(0);
-		double firstValueProbability = labelNode.predict(instance, isNaive);
+		double firstValueProbability = labelNode.predict(instance, mode);
 
 		instance.setClassLabel(1);
-		double secondValueProbability = labelNode.predict(instance, isNaive);
+		double secondValueProbability = labelNode.predict(instance, mode);
 
 		instance.revertClassLabel();
 

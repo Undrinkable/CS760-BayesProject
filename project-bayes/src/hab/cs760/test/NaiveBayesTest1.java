@@ -1,5 +1,6 @@
 package hab.cs760.test;
 
+import hab.cs760.bayesnet.BayesMode;
 import hab.cs760.bayesnet.BayesNet;
 import hab.cs760.bayesnet.LabelNode;
 import hab.cs760.bayesnet.Node;
@@ -71,7 +72,7 @@ public class NaiveBayesTest1 {
 		net.train(trainInstances);
 
 		Instance testInstance = instanceWithFeatures("y","y","r");
-		assertEquals(0.1649484522, net.predictProbabilityOfFirstLabelValue(testInstance, true),
+		assertEquals(0.1649484522, net.predictProbabilityOfFirstLabelValue(testInstance, BayesMode.Naive),
 				0.001);
 	}
 
